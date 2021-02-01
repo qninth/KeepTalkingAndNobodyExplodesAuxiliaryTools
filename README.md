@@ -11,3 +11,5 @@ python keepTalking.py
 ```
 
 启动界面：
+
+![open](README.assets/open.png)
