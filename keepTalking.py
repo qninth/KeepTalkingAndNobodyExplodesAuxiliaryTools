@@ -60,30 +60,30 @@ class KeepTalkingApp(Frame):
         self.bFrame = Frame(self.iFrame)
         self.bFrame.pack()
         self.batteryLabel = Label(self.bFrame, text='输入电池数：')
-        self.batteryLabel.pack(side=LEFT, pady=5)
+        self.batteryLabel.pack(side=LEFT, pady=2)
         self.batteryNumInput = Entry(self.bFrame)
-        self.batteryNumInput.pack(pady=5)
+        self.batteryNumInput.pack(pady=2)
 
         self.snFrame = Frame(self.iFrame)
         self.snFrame.pack()
         self.serialNumLabel = Label(self.snFrame, text='输入序列号：')
-        self.serialNumLabel.pack(side=LEFT, pady=5)
+        self.serialNumLabel.pack(side=LEFT, pady=2)
         self.serialNumInput = Entry(self.snFrame)
-        self.serialNumInput.pack(pady=5)
+        self.serialNumInput.pack(pady=2)
 
         self.pFrame = Frame(self.iFrame)
         self.pFrame.pack()
         self.ParallelLabel = Label(self.pFrame, text='Parallel接口：')
-        self.ParallelLabel.pack(side=LEFT, pady=5)
+        self.ParallelLabel.pack(side=LEFT, pady=2)
         self.ParallelInput = Entry(self.pFrame)
-        self.ParallelInput.pack(pady=5)
+        self.ParallelInput.pack(pady=2)
 
         self.frkFrame = Frame(self.iFrame)
         self.frkFrame.pack()
         self.FRKLabel = Label(self.frkFrame, text='FRK灯亮：')
-        self.FRKLabel.pack(side=LEFT, pady=5)
+        self.FRKLabel.pack(side=LEFT, pady=2)
         self.FRKInput = Entry(self.frkFrame)
-        self.FRKInput.pack(pady=5)
+        self.FRKInput.pack(pady=2)
 
         self.idleLabel = Label(self.iFrame, text='')
         self.idleLabel.pack(pady=2)
@@ -200,7 +200,7 @@ class KeepTalkingApp(Frame):
                  'learn', 'never', 'other', 'place', 'plant', 'point', 'right', 'small', 'sound', 'spell', 'still',
                  'study', 'their', 'there', 'these', 'thing', 'think', 'three', 'water', 'where', 'which', 'world',
                  'would', 'write']
-        allletters = allletters.strip().split(' ')
+        allletters = allletters.strip().lower().split(' ')
         oldList = words
         newList = []
         letterNum = 0
@@ -306,10 +306,10 @@ class KeepTalkingApp(Frame):
 
     def bigButtonHelper(ev=None):
         messagebox.showinfo('帮助', """输入大按钮的颜色+空格+按钮上文字（全拼）：
-        红 = r 蓝 = b
-        黑 = k 白 = w
-        黄 = y
-        文字：yinbao、anzhu
+颜色：红 = r 蓝 = b 黑 = k 白 = w  黄 = y
+文字：引爆 = yinbao、按住 = anzhu
+
+如果是红色引爆，则输入：k yinbao
         """)
 ###knob旋钮题
     def knob(self, event):
@@ -329,7 +329,11 @@ class KeepTalkingApp(Frame):
 
 
     def knobHelper(ev=None):
-        messagebox.showinfo('帮助', """输入第一行前三个和第二行后三个：""")
+        messagebox.showinfo('帮助', """输入第一行前三个和第二行后三个：
+如果提示（■ 为LED亮，□ 为LED暗）：
+□ □ ■ □ □ □
+□ □ □ ■ □ □
+那么输入：001100""")
 
 
 app = KeepTalkingApp()
