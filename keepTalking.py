@@ -41,6 +41,22 @@ class ModuleFrame(Frame):
         self.moduleInput.delete(0, END)
 
 
+class InformFrame(Frame):
+    def __init__(self, master):
+        self.iFrame = Frame(self.iFrame)
+        self.iFrame.pack()
+        self.informLabel = Label(self.bFrame, text='输入电池数：')
+        self.informLabel.pack(side=LEFT, pady=2)
+        self.informInput = Entry(self.bFrame)
+        self.informInput.pack(pady=2)
+        
+    def getInput(self):
+        return self.informInput.get()
+    
+    def deleteInput(self):
+        self.informInput.delete(0, END)
+        
+
 class KeepTalkingApp(Frame):
     def __init__(self, master=None):
         Frame.__init__(self, master)
