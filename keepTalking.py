@@ -11,12 +11,11 @@ from tkinter import *
 from tkinter import messagebox
 from fuzzywuzzy import process
 
-
 class ModuleFrame(Frame):
     def __init__(self, master, label, button, func, helper):
         Frame.__init__(self, master)
         self.iFrame = Frame(self)
-        self.iFrame.pack()
+        self.iFrame.pack(side=LEFT)
 
         self.moduleLabel = Label(self.iFrame, text=label)
         self.moduleLabel.pack(side=LEFT, pady=2)
@@ -46,16 +45,19 @@ class ModuleFrame(Frame):
 
 
 class InformFrame(Frame):
-    def __init__(self, master):
-        self.iFrame = Frame(self.iFrame)
+    def __init__(self, master, text, default):
+        Frame.__init__(self, master)
+        self.iFrame = Frame(master)
         self.iFrame.pack()
-        self.informLabel = Label(self.bFrame, text='输入电池数：')
+        self.informLabel = Label(self.iFrame, text=text)
         self.informLabel.pack(side=LEFT, pady=2)
-        self.informInput = Entry(self.bFrame)
+        self.informInput = Entry(self.iFrame)
         self.informInput.pack(pady=2)
+        
+        self.default = default
 
     def getInput(self):
-        return self.informInput.get()
+        return self.informInput.get() or self.default
 
     def deleteInput(self):
         self.informInput.delete(0, END)
@@ -77,34 +79,22 @@ class KeepTalkingApp(Frame):
         self.iFrame = Frame(self)
         self.iFrame.pack()
 
-        self.bFrame = Frame(self.iFrame)
+        # battery Number
+        self.bFrame = InformFrame(self.iFrame,'输入电池数：', '0')
         self.bFrame.pack()
-        self.batteryLabel = Label(self.bFrame, text='输入电池数：')
-        self.batteryLabel.pack(side=LEFT, pady=2)
-        self.batteryNumInput = Entry(self.bFrame)
-        self.batteryNumInput.pack(pady=2)
-
-        self.snFrame = Frame(self.iFrame)
+        
+        # serial Num
+        self.snFrame = InformFrame(self.iFrame,'输入序列号：', '0')
         self.snFrame.pack()
-        self.serialNumLabel = Label(self.snFrame, text='输入序列号：')
-        self.serialNumLabel.pack(side=LEFT, pady=2)
-        self.serialNumInput = Entry(self.snFrame)
-        self.serialNumInput.pack(pady=2)
-
-        self.pFrame = Frame(self.iFrame)
+        
+        # Parallel Port
+        self.pFrame = InformFrame(self.iFrame,'Parallel接口：', '0')
         self.pFrame.pack()
-        self.ParallelLabel = Label(self.pFrame, text='Parallel接口：')
-        self.ParallelLabel.pack(side=LEFT, pady=2)
-        self.ParallelInput = Entry(self.pFrame)
-        self.ParallelInput.pack(pady=2)
 
-        self.frkFrame = Frame(self.iFrame)
+        # FRK Light
+        self.frkFrame = InformFrame(self.iFrame,'FRK灯亮：', '0')
         self.frkFrame.pack()
-        self.FRKLabel = Label(self.frkFrame, text='FRK灯亮：')
-        self.FRKLabel.pack(side=LEFT, pady=2)
-        self.FRKInput = Entry(self.frkFrame)
-        self.FRKInput.pack(pady=2)
-
+        
         self.idleLabel = Label(self.iFrame, text='')
         self.idleLabel.pack(pady=2)
 
@@ -125,12 +115,17 @@ class KeepTalkingApp(Frame):
         self.clFrame.pack()
 
         # 大按钮
-        self.bbFrame = ModuleFrame(self, '大按钮', '输入大按钮的颜色 文字', self.bigButton, self.bigButtonHelper)
+        self.bbFrame = ModuleFrame(self, '大按钮', '输入颜色 文字', self.bigButton, self.bigButtonHelper)
         self.bbFrame.pack()
 
         # 摩斯电码
         self.mcFrame = ModuleFrame(self, '摩斯电码', '输入完整的电码', self.morseCode, self.morseCodeHelper)
         self.mcFrame.pack()
+
+
+        # 迷宫
+        self.mazeFrame = ModuleFrame(self, '迷宫', '输入圆圈位置', self.maze, self.mazeHelper)
+        self.mazeFrame.pack()
 
         # 旋钮
         self.knobFrame = ModuleFrame(self, '旋钮', '输入旋扭灯显', self.knob, self.knobHelper)
@@ -147,6 +142,8 @@ class KeepTalkingApp(Frame):
         self.lsFrame.deleteInput()
         self.clFrame.deleteInput()
         self.bbFrame.deleteInput()
+        self.mcFrame.deleteInput()
+        self.mazeFrame.deleteInput()
         self.knobFrame.deleteInput()
 
     # 按字母位置顺序输入备选字母，不同位置的字母用空格分开
@@ -157,7 +154,7 @@ class KeepTalkingApp(Frame):
         # self.alllettersInput.delete(0,END)
         allcolors = allcolors.lower()
 
-        sn = self.serialNumInput.get() or '12345'
+        sn = self.snFrame.getInput() or '12345'
 
         def l3():
             if not 'r' in allcolors:
@@ -309,7 +306,7 @@ class KeepTalkingApp(Frame):
         decodedStates = parserStates(states)
 
         def findState(self, state):
-            lookupTable = ['C', 'S', 'S', 'S', 'C', 'C', 'D', 'P', 'D', 'B', 'P', 'S', 'B', 'P', 'B', 'D']
+            lookupTable = ['C', 'S', 'S', 'S', 'C', 'C', 'D', 'P', 'D', 'B', 'P', 'S', 'B', 'B', 'P', 'D']
 
             # hints = {
             #     'C':'剪断它',
@@ -334,7 +331,7 @@ class KeepTalkingApp(Frame):
                 return "D:不剪"
 
             def serialNumAction(self):
-                sn = self.serialNumInput.get() or '1'
+                sn = self.snFrame.getInput() or '1'
                 return ("S:不剪" if int(sn[-1]) % 2 else "S:剪")
 
             def parallelAction(self):
@@ -342,7 +339,7 @@ class KeepTalkingApp(Frame):
                 return ("P:剪" if p else "P:不剪")
 
             def batteryAction(self):
-                bn = int(self.batteryNumInput.get() or '0')
+                bn = int(self.bFrame.getInput() or '0')
                 return ("B:剪" if bn >= 2 else "B:不剪")
 
             def errorHandler(self):
@@ -431,7 +428,7 @@ class KeepTalkingApp(Frame):
         buttonInform = (self.bbFrame.getInput() or 'w anxia').split(' ')
         buttonColor = buttonInform[0]
         buttonText = buttonInform[1]
-        batteryNum = self.batteryNumInput.get() or '0'
+        batteryNum = self.bFrame.getInput() or '0'
         FRK = self.FRKInput.get() or '0'
         # self.alllettersInput.delete(0,END)
         if int(batteryNum) > 1 and buttonText == 'yinbao':
@@ -452,9 +449,33 @@ class KeepTalkingApp(Frame):
 如果是红色引爆，则输入：k yinbao
         """)
 
+    def maze(self, event):
+        mazeInform = (self.mazeFrame.getInput() or '12').split(' ')
+        
+        def popup_bonus(message):
+            img = Toplevel()
+            img.wm_title("maze")
+            img.wm_attributes('-topmost',1)
+        
+            l = Label(img, image = message)
+            l.grid(row=0, column=0)
+        
+            b = Button(img, text="Okay", command=img.destroy)
+            b.grid(row=1, column=0)
+            img.mainloop()
+            
+        file_path = 'images/%s.gif' % mazeInform[0]
+        image = PhotoImage(file = file_path)
+        popup_bonus(image)
+        # messagebox._show('操作', 'maze' , _icon = image)
+
+    def mazeHelper(ev=None):
+        messagebox.showinfo('帮助', """输入靠左的圆圈坐标：
+左上角为11，一行二列为21，
+回车可以得到对应的迷宫图片""")
+
     def morseCode(self, event):
-        morseCodeInform = (self.mcFrame.getInput() or '1010001010101')
-        morseCodeList = ['10000011000', '1000000001010111', '1000111111000000', '100011110010000', '1000010001101', '1000010001010101', '00100100001010101', '00000101000100000', '0100001101000', '0000000001000100', '0000100001010101', '0001001101', '00010010110', '000101011110000', '1010001010101', '0001010101111010']
+        morseCodeInform = (self.mcFrame.getInput() or '1010001010101').strip()
         morseCodeDict = {
             '10000011000'      : '3.600 MHz',
             '1000000001010111' : '3.552 MHz',
@@ -473,11 +494,23 @@ class KeepTalkingApp(Frame):
             '1010001010101'    : '3.532 MHz',
             '0001010101111010' : '3.595 MHz'
             }
-
-        actionList = process.extract(morseCodeInform, morseCodeList, limit=2)        
-        action = morseCodeDict[actionList[0][0]] + '的概率为' + str(actionList[0][1]) + '%\r\n'\
-               + morseCodeDict[actionList[1][0]] + '的概率为' + str(actionList[1][1]) + '%'
-        messagebox.showinfo('操作', '%s' % action)
+        morseCodeList = list(morseCodeDict.keys())
+        
+        if len(morseCodeInform)<=10:
+            morseCodeList2 = []
+            morseCodeDict2 = {}
+            for mc in morseCodeList:
+                morseCodeList2.append(mc[0:len(morseCodeInform)])
+                morseCodeDict2[mc[0:len(morseCodeInform)]] = mc            
+            actionList = process.extract(morseCodeInform, morseCodeList2, limit=2)        
+            action = morseCodeDict[morseCodeDict2[actionList[0][0]]] + '的概率为' + str(actionList[0][1]) + '%\r\n'\
+                   + morseCodeDict[morseCodeDict2[actionList[1][0]]] + '的概率为' + str(actionList[1][1]) + '%'
+            messagebox.showinfo('操作', '%s' % action)
+        else:
+            actionList = process.extract(morseCodeInform, morseCodeList, limit=2)        
+            action = morseCodeDict[actionList[0][0]] + '的概率为' + str(actionList[0][1]) + '%\r\n'\
+                   + morseCodeDict[actionList[1][0]] + '的概率为' + str(actionList[1][1]) + '%'
+            messagebox.showinfo('操作', '%s' % action)
 
     def morseCodeHelper(ev=None):
         messagebox.showinfo('帮助', """
