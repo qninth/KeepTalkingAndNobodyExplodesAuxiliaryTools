@@ -113,7 +113,7 @@ class KeepTalkingApp(Frame):
         self.guessFrame.pack()
 
         # 线和星星题
-        self.lsFrame = ModuleFrame(self, '灯、星星和线', '按顺序输入灯、星星、蓝色、红色', self.LEDStarAndLine, self.LEDStarAndLineHelper)
+        self.lsFrame = ModuleFrame(self, '灯、线和星星', '灯、颜色、星星', self.LEDStarAndLine, self.LEDStarAndLineHelper)
         self.lsFrame.pack()
 
         # 大按钮
@@ -245,63 +245,134 @@ class KeepTalkingApp(Frame):
     # 如果含蓝色，写1，如果不含蓝色，写0；
     # 如果含红色，写1，如果不含红色，写0。
     def LEDStarAndLine(self, event):
-        states = self.lsFrame.getInput() or '16'
-        self.lsFrame.deleteInput()
-        lookupTable = ['C', 'S', 'S', 'S', 'C', 'C', 'D', 'P', 'D', 'B', 'P', 'S', 'B', 'P', 'B', 'D']
-
-        # hints = {
-        #     'C':'剪断它',
-        #     'D':'不要管，看下一根线',
-        #     'S':'去看序列号末位（偶数剪断线路）',
-        #     'P':'检查一下Parallel端口（存在则剪断）',
-        #     'B':'数电池的数目（有大于等于2个剪断）',
-        #     'ValueError':'输入数组为空或超出16种情况'
-        #     }
-        try:
-            hint = lookupTable[int(states, 2)]
-        except ValueError:
-            hint = 'ValueError'
-
-        # # print(hints[hint])
-        # messagebox.showinfo('提示', '%s' % hints[hint])
-
-        def cutAction():
-            return "C:剪"
-
-        def dontAction():
-            return "D:不剪"
-
-        def serialNumAction():
-            sn = self.serialNumInput.get() or '1'
-            return ("S:不剪" if int(sn[-1]) % 2 else "S:剪")
-
-        def parallelAction():
-            p = int(self.ParallelInput.get() or '0')
-            return ("P:剪" if p else "P:不剪")
-
-        def batteryAction():
-            bn = int(self.batteryNumInput.get()) or '0'
-            return ("B:剪" if bn >= 2 else "B:不剪")
-
-        def errorHandler():
-            return '输入数组为空或超出16种情况'
-
-        action = {
-            'C': cutAction,
-            'D': dontAction,
-            'S': serialNumAction,
-            'P': parallelAction,
-            'B': batteryAction,
-            'ValueError': errorHandler
-        }
-        messagebox.showinfo('操作', '%s' % action[hint]())
+        states = self.lsFrame.getInput() or '100000 rrbwvv 000010'
+        # self.lsFrame.deleteInput()
+        
+        def parserStates(states):
+            sList = states.strip().split(' ')
+            
+            def led(s):
+                return s
+            
+            def rgb(s):
+                s1 = ''
+                s2 = ''
+                for a in s:
+                    if a == 'r':
+                        s1 = s1+'1'
+                        s2 = s2+'0'
+                    elif a == 'b':
+                        s1 = s1+'0'
+                        s2 = s2+'1'
+                    elif a == 'h':
+                        s1 = s1+'1'
+                        s2 = s2+'1'
+                    elif a == 'w':
+                        s1 = s1+'0'
+                        s2 = s2+'0'
+                    elif a == 'v':
+                        s1 = s1+'v'
+                        s2 = s2+'v'
+                    else:
+                        s1 = s1+'e'
+                        s2 = s2+'e'
+                return s1,s2
+            
+            def star(s):
+                return s
+            
+            sLed = led(sList[0])
+            sR,sB = rgb(sList[1])
+            sStar = star(sList[2])
+            
+            decodedStates = []
+            for i in range(len(sLed)):
+                decodedStates.append(sLed[i] + sStar[i] + sB[i] + sR[i])
+            return decodedStates
+            
+        decodedStates = []
+        decodedStates = parserStates(states)
+        
+        def findState(self, state):
+            lookupTable = ['C', 'S', 'S', 'S', 'C', 'C', 'D', 'P', 'D', 'B', 'P', 'S', 'B', 'P', 'B', 'D']
+    
+            # hints = {
+            #     'C':'剪断它',
+            #     'D':'不要管，看下一根线',
+            #     'S':'去看序列号末位（偶数剪断线路）',
+            #     'P':'检查一下Parallel端口（存在则剪断）',
+            #     'B':'数电池的数目（有大于等于2个剪断）',
+            #     'ValueError':'输入数组为空或超出16种情况'
+            #     }
+            try:
+                hint = lookupTable[int(state, 2)]
+            except ValueError:
+                hint = 'ValueError'
+    
+            # # print(hints[hint])
+            # messagebox.showinfo('提示', '%s' % hints[hint])
+    
+            def cutAction(self):
+                return "C:剪"
+    
+            def dontAction(self):
+                return "D:不剪"
+    
+            def serialNumAction(self):
+                sn = self.serialNumInput.get() or '1'
+                return ("S:不剪" if int(sn[-1]) % 2 else "S:剪")
+    
+            def parallelAction(self):
+                p = int(self.ParallelInput.get() or '0')
+                return ("P:剪" if p else "P:不剪")
+    
+            def batteryAction(self):
+                bn = int(self.batteryNumInput.get() or '0')
+                return ("B:剪" if bn >= 2 else "B:不剪")
+    
+            def errorHandler(self):
+                return '输入数组为空或超出16种情况'
+    
+            action = {
+                'C': cutAction,
+                'D': dontAction,
+                'S': serialNumAction,
+                'P': parallelAction,
+                'B': batteryAction,
+                'ValueError': errorHandler
+            }
+            # messagebox.showinfo('操作', '%s' % action[hint]())
+            return action[hint](self)
+        
+        action = ''
+        actionOne = ''
+        num = 0
+        for state in decodedStates:
+            fs = findState(self, state)
+            if state.find('v') < 0:
+                num = num + 1
+                if fs.find(':剪') >= 0:
+                    actionOne = actionOne + str(num) + ', '
+            
+            if state.find('e') > 0:
+                fs = "输入颜色存在错误，请检查"
+            action = action + fs + '\r\n'
+        actionOne = '剪第 ' + actionOne[:-2] + ' 根'
+        messagebox.showinfo('操作', '%s\r\n%s' % (action,actionOne))
 
     def LEDStarAndLineHelper(ev=None):
-        messagebox.showinfo('帮助', """按照灯、星星、蓝色、红色的顺序写
+        messagebox.showinfo('帮助', """按照灯、线和星星的顺序写
 如果灯亮，写1，如果不亮，写0；
-如果有星星，写1，如果无星星，写0；
-如果含蓝色，写1，如果不含蓝色，写0；
-如果含红色，写1，如果不含红色，写0。""")
+如果线是红色，写r，如果线是蓝色，写b，如果线是蓝红，写h，如果线是白色，写w, 如果没线写v；
+  (r = red, b = blue, h = hybird, w = white)
+如果有星星，写1，如果无星星，写0。
+
+如果情况如下：
+亮 暗 暗 暗 暗 暗
+红 红 蓝 白 空 空
+线 线 白 线     
+无 无 无 无 星 无
+则输入：100000 rrbwvv 000010""")
 
     def bigButton(self, event):
         buttonInform = (self.bbFrame.getInput() or 'w anxia').split(' ')
@@ -340,7 +411,7 @@ class KeepTalkingApp(Frame):
         elif knobInform == '011101' or knobInform == '101001':
             action = "向下"
         else:
-            action = "未定义"
+            action = "未定义的情况，检查输入是否正确。"
         messagebox.showinfo('操作', '%s' % action)
 
 
