@@ -3,9 +3,13 @@
 Created on Sun Jan 31 00:57:57 2021
 
 @author: 15
+
+pip install fuzzywuzzy
+pip install Levenshtein
 """
 from tkinter import *
 from tkinter import messagebox
+from fuzzywuzzy import process
 
 
 class ModuleFrame(Frame):
@@ -31,8 +35,8 @@ class ModuleFrame(Frame):
         self.moduleHelpButton = Button(self.mFrame, text=' ? ', command=helper)
         self.moduleHelpButton.pack(pady=2)
 
-        self.idleLabel = Label(self, text='')
-        self.idleLabel.pack(pady=0)
+        # self.idleLabel = Label(self, text='')
+        # self.idleLabel.pack(pady=0)
 
     def getInput(self):
         return self.moduleInput.get()
@@ -49,13 +53,13 @@ class InformFrame(Frame):
         self.informLabel.pack(side=LEFT, pady=2)
         self.informInput = Entry(self.bFrame)
         self.informInput.pack(pady=2)
-        
+
     def getInput(self):
         return self.informInput.get()
-    
+
     def deleteInput(self):
         self.informInput.delete(0, END)
-        
+
 
 class KeepTalkingApp(Frame):
     def __init__(self, master=None):
@@ -116,22 +120,32 @@ class KeepTalkingApp(Frame):
         self.lsFrame = ModuleFrame(self, '灯、线和星星', '灯、颜色、星星', self.LEDStarAndLine, self.LEDStarAndLineHelper)
         self.lsFrame.pack()
 
+        # 顺序线路题
+        self.clFrame = ModuleFrame(self, '顺序线路', '颜色位置', self.complexLine, self.complexLineHelper)
+        self.clFrame.pack()
+
         # 大按钮
         self.bbFrame = ModuleFrame(self, '大按钮', '输入大按钮的颜色 文字', self.bigButton, self.bigButtonHelper)
         self.bbFrame.pack()
+
+        # 摩斯电码
+        self.mcFrame = ModuleFrame(self, '摩斯电码', '输入完整的电码', self.morseCode, self.morseCodeHelper)
+        self.mcFrame.pack()
 
         # 旋钮
         self.knobFrame = ModuleFrame(self, '旋钮', '输入旋扭灯显', self.knob, self.knobHelper)
         self.knobFrame.pack()
 
+
     def clearAll(self, event):
-        self.batteryNumInput.delete(0,END)
-        self.serialNumInput.delete(0,END)
-        self.ParallelInput.delete(0,END)
-        self.FRKInput.delete(0,END)
+        self.batteryNumInput.delete(0, END)
+        self.serialNumInput.delete(0, END)
+        self.ParallelInput.delete(0, END)
+        self.FRKInput.delete(0, END)
         self.slFrame.deleteInput()
         self.guessFrame.deleteInput()
         self.lsFrame.deleteInput()
+        self.clFrame.deleteInput()
         self.bbFrame.deleteInput()
         self.knobFrame.deleteInput()
 
@@ -246,56 +260,57 @@ class KeepTalkingApp(Frame):
     # 如果含红色，写1，如果不含红色，写0。
     def LEDStarAndLine(self, event):
         states = self.lsFrame.getInput() or '100000 rrbwvv 000010'
+
         # self.lsFrame.deleteInput()
-        
+
         def parserStates(states):
             sList = states.strip().split(' ')
-            
+
             def led(s):
                 return s
-            
+
             def rgb(s):
                 s1 = ''
                 s2 = ''
                 for a in s:
                     if a == 'r':
-                        s1 = s1+'1'
-                        s2 = s2+'0'
+                        s1 = s1 + '1'
+                        s2 = s2 + '0'
                     elif a == 'b':
-                        s1 = s1+'0'
-                        s2 = s2+'1'
+                        s1 = s1 + '0'
+                        s2 = s2 + '1'
                     elif a == 'h':
-                        s1 = s1+'1'
-                        s2 = s2+'1'
+                        s1 = s1 + '1'
+                        s2 = s2 + '1'
                     elif a == 'w':
-                        s1 = s1+'0'
-                        s2 = s2+'0'
+                        s1 = s1 + '0'
+                        s2 = s2 + '0'
                     elif a == 'v':
-                        s1 = s1+'v'
-                        s2 = s2+'v'
+                        s1 = s1 + 'v'
+                        s2 = s2 + 'v'
                     else:
-                        s1 = s1+'e'
-                        s2 = s2+'e'
-                return s1,s2
-            
+                        s1 = s1 + 'e'
+                        s2 = s2 + 'e'
+                return s1, s2
+
             def star(s):
                 return s
-            
+
             sLed = led(sList[0])
-            sR,sB = rgb(sList[1])
+            sR, sB = rgb(sList[1])
             sStar = star(sList[2])
-            
+
             decodedStates = []
             for i in range(len(sLed)):
                 decodedStates.append(sLed[i] + sStar[i] + sB[i] + sR[i])
             return decodedStates
-            
+
         decodedStates = []
         decodedStates = parserStates(states)
-        
+
         def findState(self, state):
             lookupTable = ['C', 'S', 'S', 'S', 'C', 'C', 'D', 'P', 'D', 'B', 'P', 'S', 'B', 'P', 'B', 'D']
-    
+
             # hints = {
             #     'C':'剪断它',
             #     'D':'不要管，看下一根线',
@@ -308,31 +323,31 @@ class KeepTalkingApp(Frame):
                 hint = lookupTable[int(state, 2)]
             except ValueError:
                 hint = 'ValueError'
-    
+
             # # print(hints[hint])
             # messagebox.showinfo('提示', '%s' % hints[hint])
-    
+
             def cutAction(self):
                 return "C:剪"
-    
+
             def dontAction(self):
                 return "D:不剪"
-    
+
             def serialNumAction(self):
                 sn = self.serialNumInput.get() or '1'
                 return ("S:不剪" if int(sn[-1]) % 2 else "S:剪")
-    
+
             def parallelAction(self):
                 p = int(self.ParallelInput.get() or '0')
                 return ("P:剪" if p else "P:不剪")
-    
+
             def batteryAction(self):
                 bn = int(self.batteryNumInput.get() or '0')
                 return ("B:剪" if bn >= 2 else "B:不剪")
-    
+
             def errorHandler(self):
                 return '输入数组为空或超出16种情况'
-    
+
             action = {
                 'C': cutAction,
                 'D': dontAction,
@@ -343,7 +358,7 @@ class KeepTalkingApp(Frame):
             }
             # messagebox.showinfo('操作', '%s' % action[hint]())
             return action[hint](self)
-        
+
         action = ''
         actionOne = ''
         num = 0
@@ -353,12 +368,12 @@ class KeepTalkingApp(Frame):
                 num = num + 1
                 if fs.find(':剪') >= 0:
                     actionOne = actionOne + str(num) + ', '
-            
+
             if state.find('e') > 0:
                 fs = "输入颜色存在错误，请检查"
             action = action + fs + '\r\n'
         actionOne = '剪第 ' + actionOne[:-2] + ' 根'
-        messagebox.showinfo('操作', '%s\r\n%s' % (action,actionOne))
+        messagebox.showinfo('操作', '%s\r\n%s' % (action, actionOne))
 
     def LEDStarAndLineHelper(ev=None):
         messagebox.showinfo('帮助', """按照灯、线和星星的顺序写
@@ -373,6 +388,44 @@ class KeepTalkingApp(Frame):
 线 线 白 线     
 无 无 无 无 星 无
 则输入：100000 rrbwvv 000010""")
+
+    ### complexLine 顺序线题
+    def complexLine(self, event):
+        context = self.clFrame.getInput() or 'rbrcba kakbkc '
+        context = context.strip()
+        stageNum = len(context.split(' '))
+        # '121123'
+        color = ''.join(context.split(' '))[::2]
+        text = ''.join(context.split(' '))[1::2]
+        colorL = ''.join(context.split(' ')[-1])[::2]
+        textL = ''.join(context.split(' ')[-1])[1::2]
+
+        table = {
+            'r':['C','B','A','AC','B','AC','ABC','AB','B'],
+            'b':['B','AC','B','A','B','BC','C','AC','A'],
+            'k':['ABC','AC','B','AC','B','BC','AB','C','C']
+        }
+
+        actionList = []
+        for i in range(0,len(colorL)):
+            c = colorL[i]
+            t = textL[i]
+            num = color[0:len(color)-len(colorL)+1+i].count(c)
+            if table[c][num-1].lower().find(t)>=0 :
+                actionList.append(c + '-' + str(num) + '-' +  t + ': ' + '剪')
+            else:
+                actionList.append(c + '-' + str(num) + '-' +  t + ': ' + '不剪')
+
+        action = '\r\n'.join(actionList)
+        messagebox.showinfo('操作', '%s' % action)
+
+    def complexLineHelper(ev=None):
+        messagebox.showinfo('帮助', """按顺序一次输入 颜色位置颜色位置, 空格后输入再次显示的线路颜色和位置：
+红色-r，蓝色-b，黑色-k
+例如：
+第一次出现红色连a，蓝色连b，黑色连c；
+第二次出现黑色连a，黑色连b，黑色连c。
+则输入：rabbkc kakbrc""")
 
     def bigButton(self, event):
         buttonInform = (self.bbFrame.getInput() or 'w anxia').split(' ')
@@ -398,7 +451,39 @@ class KeepTalkingApp(Frame):
 
 如果是红色引爆，则输入：k yinbao
         """)
-###knob旋钮题
+
+    def morseCode(self, event):
+        morseCodeInform = (self.mcFrame.getInput() or '1010001010101')
+        morseCodeList = ['10000011000', '1000000001010111', '1000111111000000', '100011110010000', '1000010001101', '1000010001010101', '00100100001010101', '00000101000100000', '0100001101000', '0000000001000100', '0000100001010101', '0001001101', '00010010110', '000101011110000', '1010001010101', '0001010101111010']
+        morseCodeDict = {
+            '10000011000'      : '3.600 MHz',
+            '1000000001010111' : '3.552 MHz',
+            '1000111111000000' : '3.565 MHz',
+            '100011110010000'  : '3.535 MHz',
+            '1000010001101'    : '3.572 MHz',
+            '1000010001010101' : '3.575 MHz',
+            '00100100001010101': '3.555 MHz',
+            '00000101000100000': '3.515 MHz',
+            '0100001101000'    : '3.542 MHz',
+            '0000000001000100' : '3.505 MHz',
+            '0000100001010101' : '3.522 MHz',
+            '0001001101'       : '3.582 MHz',
+            '00010010110'      : '3.592 MHz',
+            '000101011110000'  : '3.545 MHz',
+            '1010001010101'    : '3.532 MHz',
+            '0001010101111010' : '3.595 MHz'
+            }
+
+        actionList = process.extract(morseCodeInform, morseCodeList, limit=2)        
+        action = morseCodeDict[actionList[0][0]] + '的概率为' + str(actionList[0][1]) + '%\r\n'\
+               + morseCodeDict[actionList[1][0]] + '的概率为' + str(actionList[1][1]) + '%'
+        messagebox.showinfo('操作', '%s' % action)
+
+    def morseCodeHelper(ev=None):
+        messagebox.showinfo('帮助', """
+                            """)
+
+    ###knob旋钮题
     def knob(self, event):
         knobInform = self.knobFrame.getInput()
         # hint = int(knobInform, 2)
@@ -413,7 +498,6 @@ class KeepTalkingApp(Frame):
         else:
             action = "未定义的情况，检查输入是否正确。"
         messagebox.showinfo('操作', '%s' % action)
-
 
     def knobHelper(ev=None):
         messagebox.showinfo('帮助', """输入第一行前三个和第二行后三个：
@@ -438,7 +522,7 @@ def center_window(w, h):
     app.master.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
 
-center_window(350, 630)
+center_window(350, 730)
 app.update()  # 必须
 # 主消息循环:
 app.mainloop()
