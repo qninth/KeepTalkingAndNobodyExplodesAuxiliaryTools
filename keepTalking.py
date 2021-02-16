@@ -385,7 +385,7 @@ class KeepTalkingApp(Frame):
                 return ("S:不剪" if int(sn[-1]) % 2 else "S:剪")
 
             def parallelAction(self):
-                p = int(self.ParallelInput.get() or '0')
+                p = int(self.pFrame.getInput() or '0')
                 return ("P:剪" if p else "P:不剪")
 
             def batteryAction(self):
@@ -479,7 +479,7 @@ class KeepTalkingApp(Frame):
         buttonColor = buttonInform[0]
         buttonText = buttonInform[1]
         batteryNum = self.bFrame.getInput() or '0'
-        FRK = self.FRKInput.get() or '0'
+        FRK = self.frkFrame.getInput() or '0'
         # self.alllettersInput.delete(0,END)
         if int(batteryNum) > 1 and buttonText == 'yinbao':
             action = "l1:按一下松开"
